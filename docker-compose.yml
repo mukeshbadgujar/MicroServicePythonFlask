@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"   # RabbitMQ port
+      - "15672:15672" # RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+
+  auth_service:
+    build: ./auth_service
+    ports:
+      - "5001:5001"
+    environment:
+      - JWT_SECRET_KEY=super-secret
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  random_number_service:
+    build: ./random_number_service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  random_number_consumer:
+    build: ./random_number_consumer
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
